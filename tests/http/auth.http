@@ -1,0 +1,31 @@
+@baseUrl = http://localhost:5000/api
+@contentType = application/json
+
+### Test 1: Register with all fields
+# @name register
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+    "name": "John Doe",
+    "phone": "1234567890",
+    "email": "john@example.com",
+    "password": "password123"
+}
+
+### Test 2: Login with phone
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "phone": "1234567890",
+    "password": "password123"
+}
+
+### Save token from previous response
+@authToken = {{login.response.body.token}}
+
+### Test 3: Get current user
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{authToken}}

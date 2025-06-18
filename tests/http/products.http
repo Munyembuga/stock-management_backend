@@ -1,0 +1,73 @@
+@baseUrl = http://localhost:5000/api
+@contentType = application/json
+
+### First login to get token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "phone": "1234567890",
+    "password": "password123"
+}
+
+### Save token from login response
+@authToken = {{login.response.body.token}}
+
+### Test 1: Add new product
+# @name addProduct
+POST {{baseUrl}}/products
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "name": "Laptop Dell XPS"
+}
+
+### Test 2: Add another product
+POST {{baseUrl}}/products
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "name": "Ibishyimbo"
+}
+
+### Test 3: Get all products
+# @name getAllProducts
+GET {{baseUrl}}/products
+Authorization: Bearer {{authToken}}
+
+### Test 4: Get single product (use ID from add product response)
+# @name getProduct
+GET {{baseUrl}}/products/1
+Authorization: Bearer {{authToken}}
+
+### Test 5: Update product
+PUT {{baseUrl}}/products/1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "name": "Laptop Dell XPS 15 Updated"
+}
+
+### Test 6: Delete product
+DELETE {{baseUrl}}/products/2
+Authorization: Bearer {{authToken}}
+
+### Test 7: Try to get deleted product (should return 404)
+GET {{baseUrl}}/products/2
+Authorization: Bearer {{authToken}}
+
+### Test 8: Add product without name (should fail)
+POST {{baseUrl}}/products
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "description": "Product without name"
+}
+
+### Test 9: Access without token (should fail)
+GET {{baseUrl}}/products

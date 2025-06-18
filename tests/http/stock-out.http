@@ -1,0 +1,103 @@
+@baseUrl = http://localhost:5000/api
+@contentType = application/json
+
+### First login to get token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "phone": "1234567890",
+    "password": "password123"
+}
+
+### Save token from login response
+@authToken = {{login.response.body.token}}
+
+### Test 0: Get stock summary before any sales
+GET {{baseUrl}}/stock-out/summary/2
+Authorization: Bearer {{authToken}}
+
+### Test 1: Add stock out (sale) - should work
+# @name addStockOut
+POST {{baseUrl}}/stock-out
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 2,
+    "quantity": 10,
+    "selling_price": 1200.00
+}
+
+### Test 2: Add another stock out - should work
+POST {{baseUrl}}/stock-out
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 3,
+    "quantity": 145,
+    "selling_price": 1150.00
+}
+
+### Test 3: Get stock summary after sales
+GET {{baseUrl}}/stock-out/summary/2
+Authorization: Bearer {{authToken}}
+
+### Test 4: Get all stock out records (should show remaining_quantity)
+# @name getAllStockOut
+GET {{baseUrl}}/stock-out
+Authorization: Bearer {{authToken}}
+
+### Test 5: Get single stock out record
+# @name getStockOut
+GET {{baseUrl}}/stock-out/1
+Authorization: Bearer {{authToken}}
+
+### Test 6: Try to sell more than available stock (should fail)
+POST {{baseUrl}}/stock-out
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 2,
+    "quantity": 1000,
+    "selling_price": 1200.00
+}
+
+### Test 7: Update stock out record
+PUT {{baseUrl}}/stock-out/1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 2,
+    "quantity": 8,
+    "selling_price": 1250.00
+}
+
+### Test 8: Add stock out with invalid quantity (should fail)
+POST {{baseUrl}}/stock-out
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 2,
+    "quantity": -5,
+    "selling_price": 1200.00
+}
+
+### Test 9: Add stock out without required fields (should fail)
+POST {{baseUrl}}/stock-out
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 2,
+    "quantity": 10
+}
+
+### Test 10: Final stock summary
+GET {{baseUrl}}/stock-out/summary/2
+Authorization: Bearer {{authToken}}

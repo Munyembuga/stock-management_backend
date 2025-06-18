@@ -1,0 +1,104 @@
+@baseUrl = http://localhost:5000/api
+@contentType = application/json
+
+### Step 1: Login
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "phone": "1234567890",
+    "password": "password123"
+}
+
+### Save token
+@authToken = {{login.response.body.token}}
+
+### Step 2: Create first product
+# @name product1
+POST {{baseUrl}}/products
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "name": "Ibirayi"
+}
+
+### Step 3: Create second product
+# @name product2
+POST {{baseUrl}}/products
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "name": "Ibigori"
+}
+
+### Step 4: View all products
+GET {{baseUrl}}/products
+Authorization: Bearer {{authToken}}
+
+### Step 5: Add stock for first product
+POST {{baseUrl}}/stock
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 3,
+    "quantity": 34,
+    "cost_price": 600.00,
+    "selling_price": 899.99
+}
+
+### Step 6: Add stock for second product
+POST {{baseUrl}}/stock
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 2,
+    "quantity": 20,
+    "cost_price": 1800.00,
+    "selling_price": 2499.99
+}
+
+### Step 7: View all stock with product details
+GET {{baseUrl}}/stock
+Authorization: Bearer {{authToken}}
+
+### Step 8: Update product name
+PUT {{baseUrl}}/products/1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "name": "Ibirayi Updated"
+}
+
+### Step 9: Update stock quantity
+PUT {{baseUrl}}/stock/1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 3,
+    "quantity": 34,
+    "cost_price": 600.00,
+    "selling_price": 899.99
+}
+
+### Step 10: Get specific product
+GET {{baseUrl}}/products/1
+Authorization: Bearer {{authToken}}
+
+### Step 11: Get specific stock
+GET {{baseUrl}}/stock/1
+Authorization: Bearer {{authToken}}
+
+### Step 12: Final view of all data
+GET {{baseUrl}}/products
+Authorization: Bearer {{authToken}}
+
+###
+GET {{baseUrl}}/stock
+Authorization: Bearer {{authToken}}
