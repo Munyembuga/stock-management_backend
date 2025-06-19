@@ -80,45 +80,24 @@ try {
   console.log('Stock routes registered successfully');
 
   console.log('Loading stock out routes...');
-  try {
-    const stockOutRoutes = require('./routes/stockOutRoutes');
-    console.log('Stock out routes module loaded successfully');
-    console.log('Stock out routes type:', typeof stockOutRoutes);
-    console.log('Stock out routes keys:', Object.keys(stockOutRoutes));
-    
-    app.use('/api/stock-out', stockOutRoutes);
-    console.log('Stock out routes registered successfully at /api/stock-out');
-  } catch (stockOutError) {
-    console.error('Error loading stock out routes:', stockOutError.message);
-    console.error('Stack:', stockOutError.stack);
-    throw stockOutError;
-  }
+  const stockOutRoutes = require('./routes/stockOutRoutes');
+  console.log('Stock out routes module loaded successfully');
+  
+  app.use('/api/stock-out', stockOutRoutes);
+  console.log('Stock out routes registered successfully at /api/stock-out');
 
   console.log('Loading expense routes...');
-  try {
-    const expenseRoutes = require('./routes/expenseRoutes');
-    console.log('Expense routes module loaded successfully');
-    console.log('Expense routes type:', typeof expenseRoutes);
-    console.log('Expense routes keys:', Object.keys(expenseRoutes));
-    
-    app.use('/api/expenses', expenseRoutes);
-    console.log('Expense routes registered successfully at /api/expenses');
-  } catch (expenseError) {
-    console.error('Error loading expense routes:', expenseError.message);
-    console.error('Stack:', expenseError.stack);
-    throw expenseError;
-  }
+  const expenseRoutes = require('./routes/expenseRoutes');
+  console.log('Expense routes module loaded successfully');
+  
+  app.use('/api/expenses', expenseRoutes);
+  console.log('Expense routes registered successfully at /api/expenses');
 
 } catch (error) {
   console.error('Error in route setup:', error.message);
   console.error('Stack:', error.stack);
   process.exit(1);
 }
-
-// Add a test route to verify expenses path works
-app.get('/api/expenses/test', (req, res) => {
-  res.json({ message: 'Expenses test route works!' });
-});
 
 // Simple 404 handler (no wildcards)
 app.use((req, res, next) => {
@@ -133,6 +112,27 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
+
+try {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log('All routes registered successfully!');
+    console.log('Available routes:');
+    console.log('- /api/auth');
+    console.log('- /api/products');
+    console.log('- /api/stock');
+    console.log('- /api/stock-out');
+    console.log('- /api/expenses');
+    console.log('\nTo test the API:');
+    console.log('1. First run the SQL script to create tables');
+    console.log('2. Use /api/test-connection to verify database');
+    console.log('3. Use /api/auth/register to create a user');
+    console.log('4. Use /api/auth/login to get a token');
+  });
+} catch (error) {
+  console.error('Error starting server:', error);
+  process.exit(1);
+}
 
 try {
   app.listen(PORT, () => {

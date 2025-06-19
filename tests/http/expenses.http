@@ -22,7 +22,7 @@ Authorization: Bearer {{authToken}}
 
 {
     "expense_type": "specific",
-    "product_id": 2,
+    "product_id": 1,
     "category": "Transportation",
     "description": "Delivery cost for Ibigori products",
     "amount": 15000.00,

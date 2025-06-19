@@ -44,7 +44,7 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-    "product_id": 3,
+    "product_id": 1,
     "quantity": 34,
     "cost_price": 600.00,
     "selling_price": 899.99
