@@ -1,0 +1,143 @@
+@baseUrl = http://localhost:5000/api
+@contentType = application/json
+
+### First login to get token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "phone": "1234567890",
+    "password": "password123"
+}
+
+### Save token from login response
+@authToken = {{login.response.body.token}}
+
+### Test 1: Add specific expense (for a product)
+# @name addSpecificExpense
+POST {{baseUrl}}/expenses
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "expense_type": "specific",
+    "product_id": 2,
+    "category": "Transportation",
+    "description": "Delivery cost for Ibigori products",
+    "amount": 15000.00,
+    "expense_date": "2024-06-18"
+}
+
+### Test 2: Add general expense (utilities)
+POST {{baseUrl}}/expenses
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "expense_type": "general",
+    "category": "Utilities",
+    "description": "Monthly electricity bill",
+    "amount": 45000.00,
+    "expense_date": "2024-06-18"
+}
+
+### Test 3: Add general expense (rent)
+POST {{baseUrl}}/expenses
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "expense_type": "general",
+    "category": "Rent",
+    "description": "Monthly warehouse rent",
+    "amount": 120000.00,
+    "expense_date": "2024-06-18"
+}
+
+### Test 4: Add general expense (water)
+POST {{baseUrl}}/expenses
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "expense_type": "general",
+    "category": "Utilities",
+    "description": "Monthly water bill",
+    "amount": 8000.00,
+    "expense_date": "2024-06-18"
+}
+
+### Test 5: Get all expenses
+# @name getAllExpenses
+GET {{baseUrl}}/expenses
+Authorization: Bearer {{authToken}}
+
+### Test 6: Get expenses by type (specific only)
+GET {{baseUrl}}/expenses?expense_type=specific
+Authorization: Bearer {{authToken}}
+
+### Test 7: Get expenses by category (Utilities)
+GET {{baseUrl}}/expenses?category=Utilities
+Authorization: Bearer {{authToken}}
+
+### Test 8: Get expenses for date range
+GET {{baseUrl}}/expenses?start_date=2024-06-01&end_date=2024-06-30
+Authorization: Bearer {{authToken}}
+
+### Test 9: Get single expense
+# @name getExpense
+GET {{baseUrl}}/expenses/1
+Authorization: Bearer {{authToken}}
+
+### Test 10: Update expense
+PUT {{baseUrl}}/expenses/1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "expense_type": "specific",
+    "product_id": 2,
+    "category": "Transportation",
+    "description": "Updated delivery cost for Ibigori products",
+    "amount": 18000.00,
+    "expense_date": "2024-06-18"
+}
+
+### Test 11: Get expense summary
+GET {{baseUrl}}/expenses/summary
+Authorization: Bearer {{authToken}}
+
+### Test 12: Get expense summary for date range
+GET {{baseUrl}}/expenses/summary?start_date=2024-06-01&end_date=2024-06-30
+Authorization: Bearer {{authToken}}
+
+### Test 13: Get expense summary for specific product
+GET {{baseUrl}}/expenses/summary?product_id=2
+Authorization: Bearer {{authToken}}
+
+### Test 14: Delete expense
+DELETE {{baseUrl}}/expenses/2
+Authorization: Bearer {{authToken}}
+
+### Test 15: Try to add expense without required fields (should fail)
+POST {{baseUrl}}/expenses
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "expense_type": "general",
+    "description": "Missing category and amount"
+}
+
+### Test 16: Try to add specific expense without product_id (should fail)
+POST {{baseUrl}}/expenses
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "expense_type": "specific",
+    "category": "Transportation",
+    "description": "Missing product_id",
+    "amount": 5000.00
+}

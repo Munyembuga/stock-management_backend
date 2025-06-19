@@ -94,15 +94,30 @@ try {
     throw stockOutError;
   }
 
+  console.log('Loading expense routes...');
+  try {
+    const expenseRoutes = require('./routes/expenseRoutes');
+    console.log('Expense routes module loaded successfully');
+    console.log('Expense routes type:', typeof expenseRoutes);
+    console.log('Expense routes keys:', Object.keys(expenseRoutes));
+    
+    app.use('/api/expenses', expenseRoutes);
+    console.log('Expense routes registered successfully at /api/expenses');
+  } catch (expenseError) {
+    console.error('Error loading expense routes:', expenseError.message);
+    console.error('Stack:', expenseError.stack);
+    throw expenseError;
+  }
+
 } catch (error) {
   console.error('Error in route setup:', error.message);
   console.error('Stack:', error.stack);
   process.exit(1);
 }
 
-// Add a test route to verify stock-out path works
-app.get('/api/stock-out/test', (req, res) => {
-  res.json({ message: 'Stock-out test route works!' });
+// Add a test route to verify expenses path works
+app.get('/api/expenses/test', (req, res) => {
+  res.json({ message: 'Expenses test route works!' });
 });
 
 // Simple 404 handler (no wildcards)
@@ -128,6 +143,7 @@ try {
     console.log('- /api/products');
     console.log('- /api/stock');
     console.log('- /api/stock-out');
+    console.log('- /api/expenses');
   });
 } catch (error) {
   console.error('Error starting server:', error);
