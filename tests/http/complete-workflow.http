@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:5000/api
+@baseUrl = https://stock-management-backend.onrender.com/api
 @contentType = application/json
 
 ### Step 1: Login

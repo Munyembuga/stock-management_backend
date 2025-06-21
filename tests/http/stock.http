@@ -1,0 +1,61 @@
+@baseUrl = https://stock-management-backend.onrender.com/api
+@contentType = application/json
+
+### First login to get token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "phone": "0781234567",
+    "password": "password123"
+}
+
+### Save token from login response
+@authToken = {{login.response.body.token}}
+
+### Test 1: Get all current stock levels
+GET {{baseUrl}}/stock
+Authorization: Bearer {{authToken}}
+
+### Test 2: Get single stock item
+GET {{baseUrl}}/stock/1
+Authorization: Bearer {{authToken}}
+
+### Test 3: Manual stock adjustment - increase
+POST {{baseUrl}}/stock/adjust
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 1,
+    "adjustment_quantity": 10,
+    "adjustment_type": "increase",
+    "reason": "Found additional inventory"
+}
+
+### Test 4: Manual stock adjustment - decrease
+POST {{baseUrl}}/stock/adjust
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 1,
+    "adjustment_quantity": 5,
+    "adjustment_type": "decrease",
+    "reason": "Damaged goods"
+}
+
+### Test 5: Update stock record
+PUT {{baseUrl}}/stock/1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 1,
+    "quantity": 95
+}
+
+### Test 6: Delete stock record
+DELETE {{baseUrl}}/stock/1
+Authorization: Bearer {{authToken}}

@@ -72,6 +72,13 @@ try {
   app.use('/api/products', productRoutes);
   console.log('Product routes registered successfully');
 
+  console.log('Loading purchase routes...');
+  const purchaseRoutes = require('./routes/purchaseRoutes');
+  console.log('Purchase routes module loaded');
+  
+  app.use('/api/purchases', purchaseRoutes);
+  console.log('Purchase routes registered successfully');
+
   console.log('Loading stock routes...');
   const stockRoutes = require('./routes/stockRoutes');
   console.log('Stock routes module loaded');
@@ -92,6 +99,13 @@ try {
   
   app.use('/api/expenses', expenseRoutes);
   console.log('Expense routes registered successfully at /api/expenses');
+
+  console.log('Loading report routes...');
+  const reportRoutes = require('./routes/reportRoutes');
+  console.log('Report routes module loaded successfully');
+  
+  app.use('/api/reports', reportRoutes);
+  console.log('Report routes registered successfully at /api/reports');
 
 } catch (error) {
   console.error('Error in route setup:', error.message);
@@ -123,6 +137,7 @@ try {
     console.log('- /api/stock');
     console.log('- /api/stock-out');
     console.log('- /api/expenses');
+    console.log('- /api/reports');
     console.log('\nTo test the API:');
     console.log('1. First run the SQL script to create tables');
     console.log('2. Use /api/test-connection to verify database');
@@ -133,20 +148,3 @@ try {
   console.error('Error starting server:', error);
   process.exit(1);
 }
-
-try {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log('All routes registered successfully!');
-    console.log('Available routes:');
-    console.log('- /api/auth');
-    console.log('- /api/products');
-    console.log('- /api/stock');
-    console.log('- /api/stock-out');
-    console.log('- /api/expenses');
-  });
-} catch (error) {
-  console.error('Error starting server:', error);
-  process.exit(1);
-}
-

@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "random-uuid",
 		"name": "Stock Management API",
-		"description": "API documentation for Stock Management System",
+		"description": "Complete API documentation for Stock Management System with user authentication",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -22,9 +22,9 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"username\": \"testuser\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+							"raw": "{\n    \"name\": \"Test User\",\n    \"phone\": \"0781234567\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
 						},
-						"description": "Register a new user"
+						"description": "Register a new user with name, phone, email, and password"
 					}
 				},
 				{
@@ -40,9 +40,9 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+							"raw": "{\n    \"phone\": \"0781234567\",\n    \"password\": \"password123\"\n}"
 						},
-						"description": "Login existing user"
+						"description": "Login with phone and password"
 					}
 				},
 				{
@@ -57,6 +57,517 @@
 							}
 						],
 						"description": "Get current user details"
+					}
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/products",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get all products"
+					}
+				},
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/products",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Ibirayi\",\n    \"description\": \"Irish potatoes\"\n}"
+						},
+						"description": "Create a new product"
+					}
+				}
+			]
+		},
+		{
+			"name": "Purchases",
+			"item": [
+				{
+					"name": "Add Purchase",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/purchases",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_id\": 1,\n    \"quantity\": 100,\n    \"cost_price\": 800.00,\n    \"selling_price\": 1200.00\n}"
+						},
+						"description": "Add purchase record and update stock automatically"
+					}
+				},
+				{
+					"name": "Get All Purchases",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/purchases",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get all purchases for authenticated user"
+					}
+				},
+				{
+					"name": "Get Purchases with Filters",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/purchases?start_date=2024-01-01&end_date=2024-12-31&product_id=1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get purchases with date range and product filters"
+					}
+				},
+				{
+					"name": "Get Single Purchase",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/purchases/1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get single purchase by ID"
+					}
+				},
+				{
+					"name": "Update Purchase",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/api/purchases/1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_id\": 1,\n    \"quantity\": 120,\n    \"cost_price\": 780.00,\n    \"selling_price\": 1180.00\n}"
+						},
+						"description": "Update existing purchase"
+					}
+				},
+				{
+					"name": "Delete Purchase",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/api/purchases/1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Delete purchase record"
+					}
+				},
+				{
+					"name": "Get Purchase Summary",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/purchases/summary?start_date=2024-01-01&end_date=2024-12-31",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get purchase summary with analytics"
+					}
+				}
+			]
+		},
+		{
+			"name": "Stock",
+			"item": [
+				{
+					"name": "Get All Stock",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/stock",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get current stock levels for all products"
+					}
+				},
+				{
+					"name": "Get Single Stock",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/stock/1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get stock for specific product"
+					}
+				},
+				{
+					"name": "Adjust Stock",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/stock/adjust",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_id\": 1,\n    \"adjustment_quantity\": 10,\n    \"adjustment_type\": \"increase\",\n    \"reason\": \"Found additional inventory\"\n}"
+						},
+						"description": "Manually adjust stock (increase/decrease)"
+					}
+				},
+				{
+					"name": "Update Stock",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/api/stock/1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_id\": 1,\n    \"quantity\": 95\n}"
+						},
+						"description": "Update stock quantity directly"
+					}
+				},
+				{
+					"name": "Delete Stock",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/api/stock/1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Delete stock record"
+					}
+				}
+			]
+		},
+		{
+			"name": "Stock Out (Sales)",
+			"item": [
+				{
+					"name": "Add Stock Out",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/stock-out",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_id\": 1,\n    \"quantity\": 5,\n    \"selling_price\": 1200.00\n}"
+						},
+						"description": "Record a sale (validates stock availability)"
+					}
+				},
+				{
+					"name": "Get All Stock Out",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/stock-out",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get all sales records for authenticated user"
+					}
+				},
+				{
+					"name": "Get Stock Out with Filters",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/stock-out?start_date=2024-01-01&end_date=2024-12-31&product_id=1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get sales with date range and product filters"
+					}
+				},
+				{
+					"name": "Get Single Stock Out",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/stock-out/1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get single sale record"
+					}
+				},
+				{
+					"name": "Update Stock Out",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/api/stock-out/1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_id\": 1,\n    \"quantity\": 3,\n    \"selling_price\": 1150.00\n}"
+						},
+						"description": "Update sale record (validates stock)"
+					}
+				},
+				{
+					"name": "Delete Stock Out",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/api/stock-out/1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Delete sale record"
+					}
+				},
+				{
+					"name": "Get Stock Summary",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/stock-out/summary/1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get stock summary for a product"
+					}
+				}
+			]
+		},
+		{
+			"name": "Expenses",
+			"item": [
+				{
+					"name": "Add General Expense",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/expenses",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"expense_type\": \"general\",\n    \"category\": \"Transportation\",\n    \"description\": \"Fuel for delivery truck\",\n    \"amount\": 50000,\n    \"expense_date\": \"2024-06-15\"\n}"
+						},
+						"description": "Add general business expense"
+					}
+				},
+				{
+					"name": "Add Specific Expense",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/expenses",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"expense_type\": \"specific\",\n    \"product_id\": 1,\n    \"category\": \"Storage\",\n    \"description\": \"Cold storage for potatoes\",\n    \"amount\": 25000,\n    \"expense_date\": \"2024-06-15\"\n}"
+						},
+						"description": "Add product-specific expense"
+					}
+				},
+				{
+					"name": "Get All Expenses",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/expenses",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get all expenses for authenticated user"
+					}
+				},
+				{
+					"name": "Get Expenses with Filters",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/expenses?expense_type=specific&category=Storage&start_date=2024-01-01&end_date=2024-12-31",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get expenses with filters"
+					}
+				},
+				{
+					"name": "Get Single Expense",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/expenses/1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get single expense record"
+					}
+				},
+				{
+					"name": "Update Expense",
+					"request": {
+						"method": "PUT",
+						"url": "{{base_url}}/api/expenses/1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"expense_type\": \"general\",\n    \"category\": \"Transportation\",\n    \"description\": \"Updated fuel expense\",\n    \"amount\": 55000,\n    \"expense_date\": \"2024-06-15\"\n}"
+						},
+						"description": "Update expense record"
+					}
+				},
+				{
+					"name": "Delete Expense",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/api/expenses/1",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Delete expense record"
+					}
+				},
+				{
+					"name": "Get Expense Summary",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/expenses/summary?start_date=2024-01-01&end_date=2024-12-31",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"description": "Get expense summary and analytics"
 					}
 				}
 			]
@@ -78,7 +589,11 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:5000"
+			"value": "https://stock-management-backend-lz5t.onrender.com/api"
+		},
+		{
+			"key": "token",
+			"value": "your-jwt-token-here"
 		}
 	]
 }

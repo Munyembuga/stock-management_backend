@@ -14,6 +14,7 @@ const addExpense = async (req, res) => {
       amount, 
       expense_date 
     } = req.body;
+    const user_id = req.user.id; // Get user ID from auth middleware
     
     // Validation
     if (!expense_type || !category || !description || !amount) {
@@ -55,10 +56,11 @@ const addExpense = async (req, res) => {
     const finalExpenseDate = expense_date || new Date().toISOString().split('T')[0];
 
     const query = `
-      INSERT INTO expenses (expense_type, product_id, category, description, amount, expense_date, created_at) 
-      VALUES (?, ?, ?, ?, ?, ?, NOW())
+      INSERT INTO expenses (user_id, expense_type, product_id, category, description, amount, expense_date, created_at) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
     `;
     const [result] = await pool.execute(query, [
+      user_id,
       expense_type, 
       expense_type === 'specific' ? product_id : null, 
       category, 
@@ -71,6 +73,7 @@ const addExpense = async (req, res) => {
       message: 'Expense added successfully',
       expense: {
         id: result.insertId,
+        user_id,
         expense_type,
         product_id: expense_type === 'specific' ? product_id : null,
         category,
@@ -92,14 +95,16 @@ const getAllExpenses = async (req, res) => {
     console.log('User from auth:', req.user);
     
     const { expense_type, category, start_date, end_date } = req.query;
+    const user_id = req.user.id;
     
     let query = `
-      SELECT e.*, p.name as product_name 
+      SELECT e.*, p.name as product_name, u.name as user_name
       FROM expenses e 
       LEFT JOIN products p ON e.product_id = p.id 
-      WHERE 1=1
+      JOIN users u ON e.user_id = u.id
+      WHERE e.user_id = ?
     `;
-    const queryParams = [];
+    const queryParams = [user_id];
     
     // Add filters
     if (expense_type) {
@@ -131,6 +136,7 @@ const getAllExpenses = async (req, res) => {
     res.json({
       message: 'Expenses retrieved successfully',
       expenses,
+      count: expenses.length,
       filters: { expense_type, category, start_date, end_date }
     });
   } catch (error) {
@@ -143,14 +149,16 @@ const getAllExpenses = async (req, res) => {
 const getExpense = async (req, res) => {
   try {
     const { id } = req.params;
+    const user_id = req.user.id;
     
     const query = `
-      SELECT e.*, p.name as product_name 
+      SELECT e.*, p.name as product_name, u.name as user_name
       FROM expenses e 
       LEFT JOIN products p ON e.product_id = p.id 
-      WHERE e.id = ?
+      JOIN users u ON e.user_id = u.id
+      WHERE e.id = ? AND e.user_id = ?
     `;
-    const [expenses] = await pool.execute(query, [id]);
+    const [expenses] = await pool.execute(query, [id, user_id]);
     
     if (expenses.length === 0) {
       return res.status(404).json({ message: 'Expense not found' });
@@ -177,6 +185,7 @@ const updateExpense = async (req, res) => {
       amount, 
       expense_date 
     } = req.body;
+    const user_id = req.user.id;
     
     if (!expense_type || !category || !description || !amount) {
       return res.status(400).json({ 
@@ -202,9 +211,9 @@ const updateExpense = async (req, res) => {
       });
     }
 
-    // Check if expense exists
-    const existingQuery = 'SELECT * FROM expenses WHERE id = ?';
-    const [existing] = await pool.execute(existingQuery, [id]);
+    // Check if expense exists and belongs to user
+    const existingQuery = 'SELECT * FROM expenses WHERE id = ? AND user_id = ?';
+    const [existing] = await pool.execute(existingQuery, [id, user_id]);
     
     if (existing.length === 0) {
       return res.status(404).json({ message: 'Expense not found' });
@@ -225,7 +234,7 @@ const updateExpense = async (req, res) => {
     const query = `
       UPDATE expenses 
       SET expense_type = ?, product_id = ?, category = ?, description = ?, amount = ?, expense_date = ? 
-      WHERE id = ?
+      WHERE id = ? AND user_id = ?
     `;
     const [result] = await pool.execute(query, [
       expense_type, 
@@ -234,7 +243,8 @@ const updateExpense = async (req, res) => {
       description, 
       amount, 
       finalExpenseDate, 
-      id
+      id,
+      user_id
     ]);
     
     if (result.affectedRows === 0) {
@@ -262,9 +272,10 @@ const updateExpense = async (req, res) => {
 const deleteExpense = async (req, res) => {
   try {
     const { id } = req.params;
+    const user_id = req.user.id;
     
-    const query = 'DELETE FROM expenses WHERE id = ?';
-    const [result] = await pool.execute(query, [id]);
+    const query = 'DELETE FROM expenses WHERE id = ? AND user_id = ?';
+    const [result] = await pool.execute(query, [id, user_id]);
     
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Expense not found' });
@@ -280,18 +291,19 @@ const deleteExpense = async (req, res) => {
 const getExpenseSummary = async (req, res) => {
   try {
     const { start_date, end_date, product_id } = req.query;
+    const user_id = req.user.id;
     
-    let dateFilter = '';
-    const queryParams = [];
+    let dateFilter = 'WHERE user_id = ?';
+    const queryParams = [user_id];
     
     if (start_date && end_date) {
-      dateFilter = 'WHERE expense_date BETWEEN ? AND ?';
+      dateFilter = 'WHERE user_id = ? AND expense_date BETWEEN ? AND ?';
       queryParams.push(start_date, end_date);
     } else if (start_date) {
-      dateFilter = 'WHERE expense_date >= ?';
+      dateFilter = 'WHERE user_id = ? AND expense_date >= ?';
       queryParams.push(start_date);
     } else if (end_date) {
-      dateFilter = 'WHERE expense_date <= ?';
+      dateFilter = 'WHERE user_id = ? AND expense_date <= ?';
       queryParams.push(end_date);
     }
     
@@ -325,7 +337,7 @@ const getExpenseSummary = async (req, res) => {
     let productExpenses = null;
     if (product_id) {
       const productParams = [...queryParams, product_id];
-      const productFilter = dateFilter ? `${dateFilter} AND product_id = ?` : 'WHERE product_id = ?';
+      const productFilter = dateFilter + ' AND product_id = ?';
       
       const productQuery = `
         SELECT 

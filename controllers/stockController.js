@@ -1,16 +1,34 @@
 const pool = require('../config/db');
 
-// Add new stock
-const addStock = async (req, res) => {
+// Get current stock for a product (used internally)
+const getCurrentStockLevel = async (product_id) => {
   try {
-    console.log('Add stock request received:', req.body);
+    const query = 'SELECT quantity FROM stock WHERE product_id = ?';
+    const [stock] = await pool.execute(query, [product_id]);
+    return stock.length > 0 ? stock[0].quantity : 0;
+  } catch (error) {
+    console.error('Error getting current stock level:', error);
+    return 0;
+  }
+};
+
+// Adjust stock manually (for corrections, damages, etc.)
+const adjustStock = async (req, res) => {
+  try {
+    console.log('Adjust stock request received:', req.body);
     console.log('User from auth:', req.user);
     
-    const { product_id, quantity, cost_price, selling_price } = req.body;
+    const { product_id, adjustment_quantity, adjustment_type, reason } = req.body;
     
-    if (!product_id || !quantity || !cost_price || !selling_price) {
+    if (!product_id || !adjustment_quantity || !adjustment_type) {
       return res.status(400).json({ 
-        message: 'Product ID, quantity, cost price, and selling price are required' 
+        message: 'Product ID, adjustment quantity, and adjustment type are required' 
+      });
+    }
+
+    if (!['increase', 'decrease'].includes(adjustment_type)) {
+      return res.status(400).json({ 
+        message: 'Adjustment type must be either "increase" or "decrease"' 
       });
     }
 
@@ -22,38 +40,77 @@ const addStock = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    const query = `
-      INSERT INTO stock (product_id, quantity, cost_price, selling_price, created_at) 
-      VALUES (?, ?, ?, ?, NOW())
-    `;
-    const [result] = await pool.execute(query, [product_id, quantity, cost_price, selling_price]);
+    // Get current stock
+    const currentStock = await getCurrentStockLevel(product_id);
     
-    res.status(201).json({
-      message: 'Stock added successfully',
-      stock: {
-        id: result.insertId,
+    // Calculate new quantity
+    let newQuantity;
+    if (adjustment_type === 'increase') {
+      newQuantity = currentStock + parseInt(adjustment_quantity);
+    } else {
+      newQuantity = currentStock - parseInt(adjustment_quantity);
+      if (newQuantity < 0) {
+        return res.status(400).json({ 
+          message: 'Cannot reduce stock below zero. Current stock: ' + currentStock 
+        });
+      }
+    }
+
+    // Update stock
+    if (currentStock > 0) {
+      const updateQuery = `
+        UPDATE stock 
+        SET quantity = ?, updated_at = NOW() 
+        WHERE product_id = ?
+      `;
+      await pool.execute(updateQuery, [newQuantity, product_id]);    } else if (adjustment_type === 'increase') {
+      // Create new stock record if it doesn't exist and we're increasing
+      const insertQuery = `
+        INSERT INTO stock (product_id, quantity, created_at, updated_at) 
+        VALUES (?, ?, NOW(), NOW())
+      `;
+      await pool.execute(insertQuery, [product_id, newQuantity]);
+    } else {
+      return res.status(400).json({ message: 'Cannot decrease stock that doesn\'t exist' });
+    }
+    
+    res.json({
+      message: 'Stock adjusted successfully',
+      adjustment: {
         product_id,
-        quantity,
-        cost_price,
-        selling_price
+        previous_quantity: currentStock,
+        adjustment_quantity: parseInt(adjustment_quantity),
+        adjustment_type,
+        new_quantity: newQuantity,
+        reason: reason || 'Manual adjustment'
       }
     });
   } catch (error) {
-    console.error('Error in addStock:', error);
+    console.error('Error in adjustStock:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-// Get all stock
+// Get all current stock levels
 const getAllStock = async (req, res) => {
   try {
     console.log('Get all stock request received');
     console.log('User from auth:', req.user);
     
     const query = `
-      SELECT s.*, p.name as product_name 
+      SELECT s.*, p.name as product_name,
+        COALESCE(purchased.total_purchased, 0) as total_purchased,
+        COALESCE(sold.total_sold, 0) as total_sold
       FROM stock s 
       JOIN products p ON s.product_id = p.id 
+      LEFT JOIN (
+        SELECT product_id, SUM(quantity) as total_purchased
+        FROM purchases GROUP BY product_id
+      ) purchased ON s.product_id = purchased.product_id
+      LEFT JOIN (
+        SELECT product_id, SUM(quantity) as total_sold
+        FROM stock_out GROUP BY product_id
+      ) sold ON s.product_id = sold.product_id
       ORDER BY s.id DESC
     `;
     const [stock] = await pool.execute(query);
@@ -61,7 +118,7 @@ const getAllStock = async (req, res) => {
     console.log('Stock retrieved:', stock.length);
     
     res.json({
-      message: 'Stock retrieved successfully',
+      message: 'Current stock levels retrieved successfully',
       stock
     });
   } catch (error) {
@@ -100,11 +157,11 @@ const getStock = async (req, res) => {
 const updateStock = async (req, res) => {
   try {
     const { id } = req.params;
-    const { product_id, quantity, cost_price, selling_price } = req.body;
+    const { product_id, quantity } = req.body;
     
-    if (!product_id || !quantity || !cost_price || !selling_price) {
+    if (!product_id || !quantity) {
       return res.status(400).json({ 
-        message: 'Product ID, quantity, cost price, and selling price are required' 
+        message: 'Product ID and quantity are required' 
       });
     }
 
@@ -118,10 +175,10 @@ const updateStock = async (req, res) => {
 
     const query = `
       UPDATE stock 
-      SET product_id = ?, quantity = ?, cost_price = ?, selling_price = ? 
+      SET product_id = ?, quantity = ?, updated_at = NOW()
       WHERE id = ?
     `;
-    const [result] = await pool.execute(query, [product_id, quantity, cost_price, selling_price, id]);
+    const [result] = await pool.execute(query, [product_id, quantity, id]);
     
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Stock not found' });
@@ -129,7 +186,7 @@ const updateStock = async (req, res) => {
     
     res.json({
       message: 'Stock updated successfully',
-      stock: { id, product_id, quantity, cost_price, selling_price }
+      stock: { id, product_id, quantity }
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -155,9 +212,10 @@ const deleteStock = async (req, res) => {
 };
 
 module.exports = {
-  addStock,
+  adjustStock,
   getAllStock,
   getStock,
   updateStock,
-  deleteStock
+  deleteStock,
+  getCurrentStockLevel
 };

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
-  addStock,
+  adjustStock,
   getAllStock,
   getStock,
   updateStock,
@@ -10,7 +10,7 @@ const {
 const auth = require('../middleware/auth');
 
 // All routes are protected
-router.post('/', auth, addStock);
+router.post('/adjust', auth, adjustStock); // Manual stock adjustments
 router.get('/', auth, getAllStock);
 router.get('/:id', auth, getStock);
 router.put('/:id', auth, updateStock);

@@ -1,0 +1,98 @@
+@baseUrl = https://stock-management-backend.onrender.com/api
+@contentType = application/json
+
+### First login to get token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+    "email": "test@example.com",
+    "password": "password123"
+}
+
+### Save token from login response
+@authToken = {{login.response.body.token}}
+
+### Test 1: Add first purchase (creates product stock)
+# @name addPurchase1
+POST {{baseUrl}}/purchases
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 1,
+    "quantity": 100,
+    "cost_price": 800.00,
+    "selling_price": 1200.00
+}
+
+### Test 2: Add second purchase for same product (updates stock quantity)
+POST {{baseUrl}}/purchases
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 1,
+    "quantity": 50,
+    "cost_price": 750.00,
+    "selling_price": 1150.00
+}
+
+### Test 3: Add purchase for different product
+POST {{baseUrl}}/purchases
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 2,
+    "quantity": 75,
+    "cost_price": 600.00,
+    "selling_price": 950.00
+}
+
+### Test 4: Get all purchases
+# @name getAllPurchases
+GET {{baseUrl}}/purchases
+Authorization: Bearer {{authToken}}
+
+### Test 5: Get purchases with date filter
+GET {{baseUrl}}/purchases?start_date=2024-06-01&end_date=2024-06-30
+Authorization: Bearer {{authToken}}
+
+### Test 6: Get purchases for specific product
+GET {{baseUrl}}/purchases?product_id=1
+Authorization: Bearer {{authToken}}
+
+### Test 7: Get single purchase
+# @name getPurchase
+GET {{baseUrl}}/purchases/1
+Authorization: Bearer {{authToken}}
+
+### Test 8: Update purchase
+PUT {{baseUrl}}/purchases/1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+    "product_id": 1,
+    "quantity": 120,
+    "cost_price": 780.00,
+    "selling_price": 1180.00
+}
+
+### Test 9: Get purchase summary
+GET {{baseUrl}}/purchases/summary
+Authorization: Bearer {{authToken}}
+
+### Test 10: Get purchase summary with filters
+GET {{baseUrl}}/purchases/summary?start_date=2024-06-01&end_date=2024-06-30&product_id=1
+Authorization: Bearer {{authToken}}
+
+### Test 11: Delete purchase
+DELETE {{baseUrl}}/purchases/1
+Authorization: Bearer {{authToken}}
+
+### Test 12: Verify current stock levels after purchases
+GET {{baseUrl}}/stock
+Authorization: Bearer {{authToken}}
