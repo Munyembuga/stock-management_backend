@@ -95,16 +95,15 @@ const getAllExpenses = async (req, res) => {
     console.log('User from auth:', req.user);
     
     const { expense_type, category, start_date, end_date } = req.query;
-    const user_id = req.user.id;
     
     let query = `
       SELECT e.*, p.name as product_name, u.name as user_name
       FROM expenses e 
       LEFT JOIN products p ON e.product_id = p.id 
       JOIN users u ON e.user_id = u.id
-      WHERE e.user_id = ?
+      WHERE 1=1
     `;
-    const queryParams = [user_id];
+    const queryParams = [];
     
     // Add filters
     if (expense_type) {

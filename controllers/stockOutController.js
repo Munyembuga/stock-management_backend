@@ -137,18 +137,17 @@ const getAllStockOut = async (req, res) => {
     console.log('User from auth:', req.user);
     
     const { start_date, end_date, product_id } = req.query;
-    const user_id = req.user.id;
     
     let query = `
       SELECT so.*, p.name as product_name, u.name as user_name
       FROM stock_out so 
       JOIN products p ON so.product_id = p.id 
       JOIN users u ON so.user_id = u.id
-      WHERE so.user_id = ?
+      WHERE 1=1
     `;
     
     const conditions = [];
-    const params = [user_id];
+    const params = [];
     
     if (start_date && end_date) {
       conditions.push('DATE(so.created_at) BETWEEN ? AND ?');

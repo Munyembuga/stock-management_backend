@@ -89,18 +89,17 @@ const getAllPurchases = async (req, res) => {
     console.log('User from auth:', req.user);
     
     const { start_date, end_date, product_id } = req.query;
-    const user_id = req.user.id;
     
     let query = `
       SELECT p.*, pr.name as product_name, u.name as user_name
       FROM purchases p 
       JOIN products pr ON p.product_id = pr.id 
       JOIN users u ON p.user_id = u.id
-      WHERE p.user_id = ?
+      WHERE 1=1
     `;
     
     const conditions = [];
-    const params = [user_id];
+    const params = [];
     
     if (start_date && end_date) {
       conditions.push('DATE(p.created_at) BETWEEN ? AND ?');
