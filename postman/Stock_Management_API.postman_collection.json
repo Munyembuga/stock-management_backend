@@ -1149,6 +1149,430 @@
           }
         }
       ]
+    },
+    {
+      "name": "Profits",
+      "item": [
+        {
+          "name": "Add Profit Record",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"product_id\": 1,\n    \"stock_out_id\": 1,\n    \"quantity_sold\": 10,\n    \"cost_price\": 800.00,\n    \"selling_price\": 1200.00,\n    \"market_price\": 1350.00,\n    \"sale_date\": \"2024-06-20\",\n    \"notes\": \"Sold at local market with good demand\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/profits",
+              "host": ["{{baseUrl}}"],
+              "path": ["profits"]
+            }
+          }
+        },
+        {
+          "name": "Get All Profit Records",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profits",
+              "host": ["{{baseUrl}}"],
+              "path": ["profits"]
+            }
+          }
+        },
+        {
+          "name": "Get Profits with Filters",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profits?start_date=2024-06-01&end_date=2024-06-30&product_id=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["profits"],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2024-06-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2024-06-30"
+                },
+                {
+                  "key": "product_id",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Profit Record",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profits/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["profits", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Profit Record",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"product_id\": 1,\n    \"stock_out_id\": 1,\n    \"quantity_sold\": 12,\n    \"cost_price\": 800.00,\n    \"selling_price\": 1200.00,\n    \"market_price\": 1400.00,\n    \"sale_date\": \"2024-06-20\",\n    \"notes\": \"Updated: Better market price achieved\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/profits/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["profits", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Profit Record",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profits/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["profits", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Profit Summary",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profits/summary?start_date=2024-01-01&end_date=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["profits", "summary"],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2024-01-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2024-12-31"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Capital Investments",
+      "item": [
+        {
+          "name": "Add Capital Investment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 500000.00,\n    \"investment_date\": \"2024-06-20\",\n    \"investment_type\": \"cash\",\n    \"notes\": \"Initial business capital investment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/capital",
+              "host": ["{{baseUrl}}"],
+              "path": ["capital"]
+            }
+          }
+        },
+        {
+          "name": "Get All Capital Investments",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/capital",
+              "host": ["{{baseUrl}}"],
+              "path": ["capital"]
+            }
+          }
+        },
+        {
+          "name": "Get My Capital Investments",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/capital/my-investments",
+              "host": ["{{baseUrl}}"],
+              "path": ["capital", "my-investments"]
+            }
+          }
+        },
+        {
+          "name": "Get Investments with Filters",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/capital?start_date=2024-01-01&end_date=2024-12-31&investment_type=cash",
+              "host": ["{{baseUrl}}"],
+              "path": ["capital"],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2024-01-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2024-12-31"
+                },
+                {
+                  "key": "investment_type",
+                  "value": "cash"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Capital Investment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/capital/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["capital", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Capital Investment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"amount\": 550000.00,\n    \"investment_date\": \"2024-06-20\",\n    \"investment_type\": \"bank_transfer\",\n    \"notes\": \"Updated initial business capital investment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/capital/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["capital", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Capital Investment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/capital/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["capital", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Capital Investment Summary",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/capital/summary?start_date=2024-01-01&end_date=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["capital", "summary"],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2024-01-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2024-12-31"
+                }
+              ]
+            }
+          }
+        }
+      ]
     }
   ]
 }

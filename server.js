@@ -107,6 +107,20 @@ try {
   app.use('/api/reports', reportRoutes);
   console.log('Report routes registered successfully at /api/reports');
 
+  console.log('Loading profit routes...');
+  const profitRoutes = require('./routes/profitRoutes');
+  console.log('Profit routes module loaded successfully');
+  
+  app.use('/api/profits', profitRoutes);
+  console.log('Profit routes registered successfully at /api/profits');
+
+  console.log('Loading capital routes...');
+  const capitalRoutes = require('./routes/capitalRoutes');
+  console.log('Capital routes module loaded successfully');
+  
+  app.use('/api/capital', capitalRoutes);
+  console.log('Capital routes registered successfully at /api/capital');
+
 } catch (error) {
   console.error('Error in route setup:', error.message);
   console.error('Stack:', error.stack);
@@ -134,9 +148,12 @@ try {
     console.log('Available routes:');
     console.log('- /api/auth');
     console.log('- /api/products');
+    console.log('- /api/purchases');
     console.log('- /api/stock');
     console.log('- /api/stock-out');
     console.log('- /api/expenses');
+    console.log('- /api/profits');
+    console.log('- /api/capital');
     console.log('- /api/reports');
     console.log('\nTo test the API:');
     console.log('1. First run the SQL script to create tables');
