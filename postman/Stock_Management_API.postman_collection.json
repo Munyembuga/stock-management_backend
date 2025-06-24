@@ -984,6 +984,171 @@
           }
         }
       ]
+    },
+    {
+      "name": "Purchases",
+      "item": [
+        {
+          "name": "Add Purchase",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"product_id\": 1,\n    \"quantity\": 100,\n    \"cost_price\": 800.00,\n    \"selling_price\": 1200.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/purchases",
+              "host": ["{{baseUrl}}"],
+              "path": ["purchases"]
+            }
+          }
+        },
+        {
+          "name": "Get All Purchases",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/purchases",
+              "host": ["{{baseUrl}}"],
+              "path": ["purchases"]
+            }
+          }
+        },
+        {
+          "name": "Get Single Purchase",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/purchases/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["purchases", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Purchase",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"product_id\": 1,\n    \"quantity\": 120,\n    \"cost_price\": 780.00,\n    \"selling_price\": 1180.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/purchases/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["purchases", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Purchase",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/purchases/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["purchases", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Purchase Summary",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/purchases/summary?start_date=2024-01-01&end_date=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["purchases", "summary"],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2024-01-01"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2024-12-31"
+                }
+              ]
+            }
+          }
+        }
+      ]
     }
   ]
 }

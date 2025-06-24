@@ -101,6 +101,11 @@ const getAllPurchases = async (req, res) => {
     const conditions = [];
     const params = [];
     
+    // Remove user-specific filtering for viewing all purchases
+    // if you want user-specific, uncomment the next 2 lines:
+    // conditions.push('p.user_id = ?');
+    // params.push(req.user.id);
+    
     if (start_date && end_date) {
       conditions.push('DATE(p.created_at) BETWEEN ? AND ?');
       params.push(start_date, end_date);
@@ -136,16 +141,17 @@ const getAllPurchases = async (req, res) => {
 const getPurchase = async (req, res) => {
   try {
     const { id } = req.params;
-    const user_id = req.user.id;
+    
+    console.log(`Getting purchase with ID: ${id}`);
     
     const query = `
       SELECT p.*, pr.name as product_name, u.name as user_name
       FROM purchases p 
       JOIN products pr ON p.product_id = pr.id 
       JOIN users u ON p.user_id = u.id
-      WHERE p.id = ? AND p.user_id = ?
+      WHERE p.id = ?
     `;
-    const [purchases] = await pool.execute(query, [id, user_id]);
+    const [purchases] = await pool.execute(query, [id]);
     
     if (purchases.length === 0) {
       return res.status(404).json({ message: 'Purchase not found' });
@@ -156,18 +162,24 @@ const getPurchase = async (req, res) => {
       purchase: purchases[0]
     });
   } catch (error) {
+    console.error('Error in getPurchase:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
 // Update purchase
 const updatePurchase = async (req, res) => {
+  const connection = await pool.getConnection();
   try {
+    await connection.beginTransaction();
+    
     const { id } = req.params;
     const { product_id, quantity, cost_price, selling_price } = req.body;
-    const user_id = req.user.id;
+    
+    console.log(`Updating purchase ID: ${id}`, req.body);
     
     if (!product_id || !quantity || !cost_price || !selling_price) {
+      await connection.rollback();
       return res.status(400).json({ 
         message: 'Product ID, quantity, cost price, and selling price are required' 
       });
@@ -175,55 +187,156 @@ const updatePurchase = async (req, res) => {
 
     // Validate numeric values
     if (quantity <= 0 || cost_price <= 0 || selling_price <= 0) {
+      await connection.rollback();
       return res.status(400).json({ 
         message: 'Quantity, cost price, and selling price must be positive numbers' 
       });
     }
 
+    // Check if purchase exists
+    const existingQuery = 'SELECT * FROM purchases WHERE id = ?';
+    const [existing] = await connection.execute(existingQuery, [id]);
+    
+    if (existing.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ message: 'Purchase not found' });
+    }
+
+    const oldPurchase = existing[0];
+
     // Check if product exists
     const productQuery = 'SELECT id FROM products WHERE id = ?';
-    const [products] = await pool.execute(productQuery, [product_id]);
+    const [products] = await connection.execute(productQuery, [product_id]);
     
     if (products.length === 0) {
+      await connection.rollback();
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    const query = `
+    // Update purchase record
+    const updatePurchaseQuery = `
       UPDATE purchases 
-      SET product_id = ?, quantity = ?, cost_price = ?, selling_price = ? 
-      WHERE id = ? AND user_id = ?
+      SET product_id = ?, quantity = ?, cost_price = ?, selling_price = ?, updated_at = NOW()
+      WHERE id = ?
     `;
-    const [result] = await pool.execute(query, [product_id, quantity, cost_price, selling_price, id, user_id]);
+    const [result] = await connection.execute(updatePurchaseQuery, [product_id, quantity, cost_price, selling_price, id]);
     
     if (result.affectedRows === 0) {
+      await connection.rollback();
       return res.status(404).json({ message: 'Purchase not found' });
     }
+
+    // Update stock if product changed or quantity changed
+    if (oldPurchase.product_id !== product_id || oldPurchase.quantity !== quantity) {
+      // Reverse old purchase effect on stock
+      const revertStockQuery = `
+        UPDATE stock 
+        SET quantity = quantity - ?, updated_at = NOW() 
+        WHERE product_id = ?
+      `;
+      await connection.execute(revertStockQuery, [oldPurchase.quantity, oldPurchase.product_id]);
+      
+      // Apply new purchase effect on stock
+      const checkNewStockQuery = 'SELECT * FROM stock WHERE product_id = ?';
+      const [newStock] = await connection.execute(checkNewStockQuery, [product_id]);
+      
+      if (newStock.length > 0) {
+        const updateNewStockQuery = `
+          UPDATE stock 
+          SET quantity = quantity + ?, updated_at = NOW() 
+          WHERE product_id = ?
+        `;
+        await connection.execute(updateNewStockQuery, [quantity, product_id]);
+      } else {
+        const insertNewStockQuery = `
+          INSERT INTO stock (product_id, quantity, created_at, updated_at) 
+          VALUES (?, ?, NOW(), NOW())
+        `;
+        await connection.execute(insertNewStockQuery, [product_id, quantity]);
+      }
+    }
+    
+    await connection.commit();
     
     res.json({
       message: 'Purchase updated successfully',
-      purchase: { id, product_id, quantity, cost_price, selling_price }
+      purchase: { 
+        id, 
+        product_id, 
+        quantity, 
+        cost_price, 
+        selling_price,
+        old_values: {
+          product_id: oldPurchase.product_id,
+          quantity: oldPurchase.quantity
+        }
+      }
     });
   } catch (error) {
+    await connection.rollback();
+    console.error('Error in updatePurchase:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  } finally {
+    connection.release();
   }
 };
 
 // Delete purchase
 const deletePurchase = async (req, res) => {
+  const connection = await pool.getConnection();
   try {
+    await connection.beginTransaction();
+    
     const { id } = req.params;
-    const user_id = req.user.id;
     
-    const query = 'DELETE FROM purchases WHERE id = ? AND user_id = ?';
-    const [result] = await pool.execute(query, [id, user_id]);
+    console.log(`Deleting purchase ID: ${id}`);
     
-    if (result.affectedRows === 0) {
+    // Get purchase details before deleting
+    const getPurchaseQuery = 'SELECT * FROM purchases WHERE id = ?';
+    const [purchases] = await connection.execute(getPurchaseQuery, [id]);
+    
+    if (purchases.length === 0) {
+      await connection.rollback();
       return res.status(404).json({ message: 'Purchase not found' });
     }
     
-    res.json({ message: 'Purchase deleted successfully' });
+    const purchase = purchases[0];
+    
+    // Delete the purchase record
+    const deleteQuery = 'DELETE FROM purchases WHERE id = ?';
+    const [result] = await connection.execute(deleteQuery, [id]);
+    
+    if (result.affectedRows === 0) {
+      await connection.rollback();
+      return res.status(404).json({ message: 'Purchase not found' });
+    }
+    
+    // Update stock - remove the purchased quantity
+    const updateStockQuery = `
+      UPDATE stock 
+      SET quantity = GREATEST(0, quantity - ?), updated_at = NOW() 
+      WHERE product_id = ?
+    `;
+    await connection.execute(updateStockQuery, [purchase.quantity, purchase.product_id]);
+    
+    await connection.commit();
+    
+    res.json({ 
+      message: 'Purchase deleted successfully',
+      deleted_purchase: {
+        id: purchase.id,
+        product_id: purchase.product_id,
+        quantity: purchase.quantity,
+        cost_price: purchase.cost_price,
+        selling_price: purchase.selling_price
+      }
+    });
   } catch (error) {
+    await connection.rollback();
+    console.error('Error in deletePurchase:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  } finally {
+    connection.release();
   }
 };
 
@@ -231,7 +344,6 @@ const deletePurchase = async (req, res) => {
 const getPurchaseSummary = async (req, res) => {
   try {
     const { start_date, end_date, product_id } = req.query;
-    const user_id = req.user.id;
     
     let query = `
       SELECT 
@@ -240,13 +352,14 @@ const getPurchaseSummary = async (req, res) => {
         SUM(quantity * cost_price) as total_cost,
         SUM(quantity * selling_price) as potential_revenue,
         AVG(cost_price) as avg_cost_price,
-        AVG(selling_price) as avg_selling_price
+        AVG(selling_price) as avg_selling_price,
+        COUNT(DISTINCT product_id) as unique_products
       FROM purchases p
-      WHERE p.user_id = ?
+      WHERE 1=1
     `;
     
     const conditions = [];
-    const params = [user_id];
+    const params = [];
     
     if (start_date && end_date) {
       conditions.push('DATE(p.created_at) BETWEEN ? AND ?');
@@ -264,12 +377,41 @@ const getPurchaseSummary = async (req, res) => {
     
     const [summary] = await pool.execute(query, params);
     
+    // Get top purchased products
+    let topProductsQuery = `
+      SELECT 
+        pr.name as product_name,
+        p.product_id,
+        SUM(p.quantity) as total_quantity,
+        SUM(p.quantity * p.cost_price) as total_cost,
+        COUNT(*) as purchase_count
+      FROM purchases p
+      JOIN products pr ON p.product_id = pr.id
+      WHERE 1=1
+    `;
+    
+    if (conditions.length > 0) {
+      topProductsQuery += ' AND ' + conditions.join(' AND ');
+    }
+    
+    topProductsQuery += `
+      GROUP BY p.product_id, pr.name
+      ORDER BY total_quantity DESC
+      LIMIT 5
+    `;
+    
+    const [topProducts] = await pool.execute(topProductsQuery, params);
+    
     res.json({
       message: 'Purchase summary retrieved successfully',
-      summary: summary[0],
+      summary: {
+        ...summary[0],
+        top_products: topProducts
+      },
       filters: { start_date, end_date, product_id }
     });
   } catch (error) {
+    console.error('Error in getPurchaseSummary:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
